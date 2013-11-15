@@ -6,7 +6,7 @@ class HTTPConnection(httplib.HTTPConnection):
     def __init__(self, host, host_ip):
         httplib.HTTPConnection.__init__(self, host)
         self.host_ip = host_ip
-        
+
     def connect(self):
         orig_host, self.host = self.host, self.host_ip
         httplib.HTTPConnection.connect(self)
@@ -17,7 +17,7 @@ class HTTPSConnection(httplib.HTTPSConnection):
     def __init__(self, host, host_ip):
         httplib.HTTPSConnection.__init__(self, host)
         self.host_ip = host_ip
-        
+
     def connect(self):
         orig_host, self.host = self.host, self.host_ip
         httplib.HTTPSConnection.connect(self)
@@ -73,4 +73,3 @@ def BestChoice(prefer_https=False):
         return result[0]
     else:
         return None
-    

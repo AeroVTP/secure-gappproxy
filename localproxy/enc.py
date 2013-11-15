@@ -2,25 +2,25 @@
 # coding=utf-8
 #======================================================================
 # SecureGAppProxy is a security-strengthened version of GAppProxy.
-# http://secure-gappproxy.googlecode.com                               
-# This file is a part of SecureGAppProxy.                              
-# Copyright (C) 2011  nleven <www.nleven.com i@nleven.com>             
-#                                                                      
-# This program is free software: you can redistribute it and/or modify 
-# it under the terms of the GNU General Public License as published by 
-# the Free Software Foundation, either version 3 of the License, or    
-# (at your option) any later version.                                  
-#                                                                      
-# This program is distributed in the hope that it will be useful,      
-# but WITHOUT ANY WARRANTY; without even the implied warranty of       
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        
-# GNU General Public License for more details.                         
-#                                                                      
-# You should have received a copy of the GNU General Public License    
+# http://secure-gappproxy.googlecode.com
+# This file is a part of SecureGAppProxy.
+# Copyright (C) 2011  nleven <www.nleven.com i@nleven.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#                                                                      
-# ACKNOWLEDGEMENT                                                      
-# SecureGAppProxy is a based on the work of GAppProxy                  
+#
+# ACKNOWLEDGEMENT
+# SecureGAppProxy is a based on the work of GAppProxy
 # <http://gappproxy.googlecode.com> by Du XiaoGang <dugang@188.com>
 #======================================================================
 
@@ -54,7 +54,7 @@ class AESCipher:
 
     def encrypt(self, data):
         return self.cipher.encrypt(AESCipher.pad(data, BLOCK_SIZE))
-    
+
     def decrypt(self, data):
         return AESCipher.unpad(self.cipher.decrypt(data), BLOCK_SIZE)
 
@@ -121,7 +121,7 @@ DecodeAES = lambda e: DecryptAES(base64.urlsafe_b64decode(e))
 
 
 if __name__ == '__main__':
-    
+
     from binascii import hexlify, unhexlify
     def test_encrypt(name, k, iv, testvector, result):
         cipher = AES.new(k, AES.MODE_CBC, iv).encrypt(testvector)
@@ -164,7 +164,7 @@ if __name__ == '__main__':
                 print name, 'Pass'
             else:
                 print name, 'Fail', str(e)
-                
+
     test_decrypt_error('Tamper_1', 'The message integrity is compromised.',
                        unhexlify('2bf0c528ce1083ca7eec0bb8b5911d35ceb18abd5746d9252c625c80e6481ce589922abefe6d7ffc0283a947650d4115'))
     test_decrypt_error('Tamper_2', 'The message integrity is compromised.',
@@ -191,7 +191,7 @@ if __name__ == '__main__':
             print name, 'Pass'
         else:
             print name, 'Fail'
-            
+
     def test_pad_error(name, x, block_size, error):
         try:
             func(x, block_size)
@@ -210,5 +210,3 @@ if __name__ == '__main__':
     test_pad('unpad3', '\x01', 5, '', func=AESCipher.unpad)
     test_pad_error('unpad4', '\x03', 3, 'Padding error.')
     test_pad_error('unpad5', '', 3, 'Padding error.')
-
-    

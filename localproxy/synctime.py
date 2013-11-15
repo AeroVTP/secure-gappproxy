@@ -2,25 +2,25 @@
 # coding=utf-8
 #======================================================================
 # SecureGAppProxy is a security-strengthened version of GAppProxy.
-# http://secure-gappproxy.googlecode.com                               
-# This file is a part of SecureGAppProxy.                              
-# Copyright (C) 2011  nleven <www.nleven.com i@nleven.com>             
-#                                                                      
-# This program is free software: you can redistribute it and/or modify 
-# it under the terms of the GNU General Public License as published by 
-# the Free Software Foundation, either version 3 of the License, or    
-# (at your option) any later version.                                  
-#                                                                      
-# This program is distributed in the hope that it will be useful,      
-# but WITHOUT ANY WARRANTY; without even the implied warranty of       
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        
-# GNU General Public License for more details.                         
-#                                                                      
-# You should have received a copy of the GNU General Public License    
+# http://secure-gappproxy.googlecode.com
+# This file is a part of SecureGAppProxy.
+# Copyright (C) 2011  nleven <www.nleven.com i@nleven.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#                                                                      
-# ACKNOWLEDGEMENT                                                      
-# SecureGAppProxy is a based on the work of GAppProxy                  
+#
+# ACKNOWLEDGEMENT
+# SecureGAppProxy is a based on the work of GAppProxy
 # <http://gappproxy.googlecode.com> by Du XiaoGang <dugang@188.com>
 #======================================================================
 
@@ -28,7 +28,7 @@ import urllib2
 import time
 import calendar
 import locale
-    
+
 def __median(pool):
     '''Statistical median to demonstrate doctest.
     >>> median([2, 9, 9, 7, 9, 2, 4, 5, 8])
@@ -40,7 +40,7 @@ def __median(pool):
         return copy[(size - 1) / 2]
     else:
         return (copy[size/2 - 1] + copy[size/2]) / 2
-    
+
 def __get_time(server, time_result, *args):
     try:
         date_header = urllib2.urlopen(server).headers['date']
@@ -85,7 +85,7 @@ Due to the nature of http, the precision of time isn't high, but should be adequ
     except:
         #in case en_us locale doesn't exist
         pass
-    
+
     threads = map(lambda server:threading.Thread(target=__get_time, args=(server,time_result), kwargs={}), time_servers)
     map(lambda x:x.start(), threads)
 
@@ -94,7 +94,7 @@ Due to the nature of http, the precision of time isn't high, but should be adequ
     while time_result[0]>0 and len(time_result)-1 < 4:
         map(lambda x:x.join(0.1), threads)
     time_result.pop(0)
-    
+
     assert len(time_result) != 0, "Cannot fetch network time."
 
     return __median(time_result)

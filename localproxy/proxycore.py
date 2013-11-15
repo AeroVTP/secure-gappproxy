@@ -2,25 +2,25 @@
 # coding=utf-8
 #======================================================================
 # SecureGAppProxy is a security-strengthened version of GAppProxy.
-# http://secure-gappproxy.googlecode.com                               
-# This file is a part of SecureGAppProxy.                              
-# Copyright (C) 2011  nleven <www.nleven.com i@nleven.com>             
-#                                                                      
-# This program is free software: you can redistribute it and/or modify 
-# it under the terms of the GNU General Public License as published by 
-# the Free Software Foundation, either version 3 of the License, or    
-# (at your option) any later version.                                  
-#                                                                      
-# This program is distributed in the hope that it will be useful,      
-# but WITHOUT ANY WARRANTY; without even the implied warranty of       
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        
-# GNU General Public License for more details.                         
-#                                                                      
-# You should have received a copy of the GNU General Public License    
+# http://secure-gappproxy.googlecode.com
+# This file is a part of SecureGAppProxy.
+# Copyright (C) 2011  nleven <www.nleven.com i@nleven.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#                                                                      
-# ACKNOWLEDGEMENT                                                      
-# SecureGAppProxy is a based on the work of GAppProxy                  
+#
+# ACKNOWLEDGEMENT
+# SecureGAppProxy is a based on the work of GAppProxy
 # <http://gappproxy.googlecode.com> by Du XiaoGang <dugang@188.com>
 #======================================================================
 
@@ -55,13 +55,13 @@ global_notifier = None
 class LocalProxyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     PostDataLimit = 0x100000
 
-    
+
     def log_message(self, format, *args):
         global_notifier.PushStatus("%s" % (format % args))
 
-    
+
     def do_CONNECT(self):
-            
+
         if not ssl_enabled:
             self.send_error(501, "Local proxy error, HTTPS needs Python2.6 or later.")
             self.connection.close()
@@ -77,7 +77,7 @@ class LocalProxyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         # continue
         self.wfile.write("HTTP/1.1 200 OK\r\n")
         self.wfile.write("\r\n")
-        
+
         keyFile, crtFile = fakehttps.getCertificate(https_host)
         ssl_sock = ssl.wrap_socket(self.connection,
                                  server_side=True,
@@ -119,7 +119,7 @@ class LocalProxyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect(("127.0.0.1", listen_port))
         sock.send("%s %s %s\r\n" % (method, path, ver))
-        
+
         # forward https request
         ssl_sock.settimeout(1)
         while True:
@@ -155,7 +155,7 @@ class LocalProxyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         ssl_sock.shutdown(socket.SHUT_WR)
         ssl_sock.close()
         self.connection.close()
-   
+
     def do_METHOD(self):
         # check http method and post data
         method = self.command
@@ -236,7 +236,7 @@ class LocalProxyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 	#read the response and decompress & decrypt it
         resp_encrypted = resp_plain.read()
         resp = StringIO.StringIO( enc.DecryptAES(resp_encrypted) )
-        
+
         # parse resp
         # for status line
         line = resp.readline()
@@ -314,7 +314,7 @@ class LocalProxyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             resp_plain = open_request(fetch_server, enc.EncryptAES(plain_params))
             resp_encrypted = resp_plain.read()
             resp = StringIO.StringIO( enc.DecryptAES(resp_encrypted) )
-            
+
             # parse resp
             # for status line
             line = resp.readline()
@@ -408,7 +408,7 @@ class ThreadingHTTPServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer
 
 
 
-    
+
 def ConfigureNetwork():
     import nettest
     global fetch_protocol
@@ -427,7 +427,7 @@ def ConfigureNetwork():
                 return x
         global local_dns_map
         local_dns_map = useLocalDnsMap
-        
+
         global listen_port, local_proxy, server, \
                fetch_server, rekey_server,  \
                password, auto_redirect
@@ -439,7 +439,7 @@ def ConfigureNetwork():
         return True
 
 
-        
+
 
 
 def LoadConfig():
@@ -456,11 +456,11 @@ def LoadConfig():
         rekey_server = "%s://%s/%s"  % (fetch_protocol, server, _rekey)
     password = config.GetParam('password')
     auto_redirect = config.GetParam('auto_redirect')
-    
-            
+
+
 def open_request(path, data, timeout=None):
     params = urllib.urlencode({'e': base64.urlsafe_b64encode(data)})
-    
+
     # accept-encoding: identity, *;q=0
     # connection: close
     request = urllib2.Request(path)
@@ -479,17 +479,17 @@ def open_request(path, data, timeout=None):
         return template % dict(domain=rand_str(),
                                dirs=rand_dirs(),
                                filename=rand_str())
-        
+
     #When connecting the fetchserver with HTTP,
     #Try to make the http header similar to IE9
-    if fetch_protocol == 'http':        
+    if fetch_protocol == 'http':
         request.add_header("Accept", "text/html, application/xhtml+xml, */*")
         request.add_header("Referer", rand_referer())
         request.add_header("Accept-Language", "zh-CN")
         request.add_header("User-Agent", "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0; NP06)")
         request.add_header("Accept-Encoding", "gzip, deflate")#"identity, *;q=0")
         request.add_header("Cache-Control", "no-cache")
-        
+
     # create new opener
     if local_proxy != "":
         proxy_handler = urllib2.ProxyHandler({"http": local_proxy, "https":local_proxy})
@@ -500,10 +500,10 @@ def open_request(path, data, timeout=None):
         keepalive_handler = keepalive.HTTPHandler(localdnsmap=local_dns_map)
     elif fetch_protocol == 'https':
         keepalive_handler = keepalive.HTTPSHandler(localdnsmap=local_dns_map)
-        
+
     opener = urllib2.build_opener(proxy_handler, keepalive_handler)
 
-    
+
     # set the opener as the default opener
     urllib2.install_opener(opener)
     if timeout:
@@ -563,7 +563,7 @@ class ProxyCore:
         global global_notifier
         global_notifier = notifier
 
-        
+
     def StartProxy(self, persistent=True):
         global listen_port, local_proxy, server, \
             fetch_protocol, fetch_server, rekey_server,  \
@@ -590,7 +590,7 @@ class ProxyCore:
         except Exception, e:
             self.notifier.PushError("Error:\n%s" % str(e))
             return False
-        
+
         self.notifier.PushStatus('Logging into %s' % server)
         if password is None:
             import pkcs5
@@ -607,22 +607,22 @@ class ProxyCore:
             self.serve_thread.setDaemon(True)
             self.serve_thread.start()
             self.running = True
-            
+
             self.notifier.PushStatus("Start serving at localhost:%d..." % listen_port)
-            
+
             try:
                 updated, msg = autoupdate.auto_update(listen_port)
                 if updated:
                     self.notifier.PushMessage(msg)
             except Exception, e:
                 pass
-                
+
             self.notifier.PushStatus("Start serving at localhost:%d..." % listen_port)
 
         nonce.Initialize()
         return True
 
-            
+
 
     def StopProxy(self):
         self.httpd.shutdown()
@@ -651,6 +651,3 @@ class ProxyCore:
             synctime.init_offset(local_proxy)
         except Exception, e:
             self.notifier.PushError('Error in time synchronization: %s' % str(e))
-
-            
-

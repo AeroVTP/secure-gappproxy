@@ -38,14 +38,14 @@ def __parse_conf(confFile=common.DEF_CONF_FILE):
             value = value.strip()
             __conf_dict[name] = value
     fp.close()
-    
+
     #Get the password in the keyring.
     #Avoid doing so if fetch_server isn't set.
     if 'fetch_server' in __conf_dict:
         pwd = keyring.get_password('secure-gappproxy', 'password')
         if pwd and pwd!='':
             __conf_dict['password'] = pwd
-    
+
 def SaveConfig(conf_file=common.DEF_CONF_FILE):
     global __conf_dict
     conf_copy = copy.deepcopy(__conf_dict)
@@ -68,8 +68,8 @@ def SaveConfig(conf_file=common.DEF_CONF_FILE):
     finally:
         fp.close()
 
-    
-    
+
+
 def __port_validate(i, get):
     if get:
         ret = None
@@ -112,7 +112,7 @@ def __base64_convertor(s, get):
         return base64.urlsafe_b64decode(str(s))
     else:
         return base64.urlsafe_b64encode(s)
-    
+
 
 __dont_validate = lambda x,y:True
 __no_convertor = lambda x,y:x
@@ -130,7 +130,7 @@ def GetParam(key, default=None, validator=__dont_validate, convertor=__no_conver
         __parse_conf(common.DEF_CONF_FILE)
     if key in __conf_default:
         default, validator, convertor = __conf_default[key]
-        
+
     if key not in __conf_dict:
         return default
     else:
@@ -145,7 +145,7 @@ def DeleteParam(key):
     if not __conf_dict:
         __parse_conf(common.DEF_CONF_FILE)
     __conf_dict.pop(key, None)
-        
+
 def SetParam(key, value, validator=__dont_validate, convertor=__no_convertor):
     if not __conf_dict:
         __parse_conf(common.DEF_CONF_FILE)
@@ -157,9 +157,3 @@ def SetParam(key, value, validator=__dont_validate, convertor=__no_convertor):
         __conf_dict[key] = convertor(value, False)
     else:
         DeleteParam(key)
-
-
-
-
-
-

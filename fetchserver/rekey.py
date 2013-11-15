@@ -2,25 +2,25 @@
 # coding=utf-8
 #======================================================================
 # SecureGAppProxy is a security-strengthened version of GAppProxy.
-# http://secure-gappproxy.googlecode.com                               
-# This file is a part of SecureGAppProxy.                              
-# Copyright (C) 2011  nleven <www.nleven.com i@nleven.com>             
-#                                                                      
-# This program is free software: you can redistribute it and/or modify 
-# it under the terms of the GNU General Public License as published by 
-# the Free Software Foundation, either version 3 of the License, or    
-# (at your option) any later version.                                  
-#                                                                      
-# This program is distributed in the hope that it will be useful,      
-# but WITHOUT ANY WARRANTY; without even the implied warranty of       
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        
-# GNU General Public License for more details.                         
-#                                                                      
-# You should have received a copy of the GNU General Public License    
+# http://secure-gappproxy.googlecode.com
+# This file is a part of SecureGAppProxy.
+# Copyright (C) 2011  nleven <www.nleven.com i@nleven.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#                                                                      
-# ACKNOWLEDGEMENT                                                      
-# SecureGAppProxy is a based on the work of GAppProxy                  
+#
+# ACKNOWLEDGEMENT
+# SecureGAppProxy is a based on the work of GAppProxy
 # <http://gappproxy.googlecode.com> by Du XiaoGang <dugang@188.com>
 #======================================================================
 
@@ -40,16 +40,16 @@ class MainHandler(webapp2.RequestHandler):
     def get(self):
         self.error(404)
         return
-    
+
     def post(self):
         self.response.headers["Content-Type"] = "application/octet-stream"
-        
+
         try:
             if self.request.get("e")=='':
                 self.response.out.write(os.urandom(65))
                 return
             data = base64.urlsafe_b64decode(self.request.get("e").encode('utf-8'))
-                
+
             pending_request = pendingreq.RetrievePendingRequest(data)
             known_state = agreestate.find_state(data)
 
@@ -64,7 +64,7 @@ class MainHandler(webapp2.RequestHandler):
 
             if known_state is not None:
                 try:
-                    
+
                     known_state.Phase2(data)
                     key.SetKey(known_state.DeriveKey("Encrypt"),
                                known_state.DeriveKey("Authenticate")
@@ -74,7 +74,7 @@ class MainHandler(webapp2.RequestHandler):
                     #ProtocolAbort return random result
                     logging.error('Protocol abort in first phase.')
                     self.response.out.write(os.urandom(65))
-                    
+
             else:
                 state = bpkaspak.KeyAgreementServer(key.GetPassword())
                 resp = ''
@@ -90,11 +90,5 @@ class MainHandler(webapp2.RequestHandler):
         except Exception, e:
             logging.error('Unknown error in authentication. %s' % str(e))
             self.response.out.write(os.urandom(65))
-            
-            
-            
-        
-        
-
 
 app = webapp2.WSGIApplication([("/rekey", MainHandler)],debug=True)

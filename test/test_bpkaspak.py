@@ -1,7 +1,7 @@
 import sys
 sys.path.append('../fetchserver/bpkaspak')
 from __init__ import *
-        
+
 if __name__ == '__main__':
     ms= "*j2W@fS"
     c = KeyAgreementClient(ms)
@@ -145,6 +145,3 @@ if __name__ == "__main__":
     print "u1 * p192 + u2 * Q came out wrong."
   else:
     print "u1 * p192 + u2 * Q came out right."
-
-
-

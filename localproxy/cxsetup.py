@@ -33,7 +33,7 @@ buildOptions = dict(
 
 setup(
         name = "Secure GAppProxy",
-        version = common.VERSION, 
+        version = common.VERSION,
         description = "A Branch of GAppProxy For Security Paranoia",
         options = dict(build_exe = buildOptions),
         executables = [Executable("gui.py",
@@ -46,5 +46,3 @@ setup(
                                   targetName='proxy_console%s'%extension,
                                   ),
                        ])
-
-

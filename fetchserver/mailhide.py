@@ -14,7 +14,7 @@ def asurl (email,
     returns the url. public_key is the public key from reCAPTCHA
     (in the base 64 encoded format). Private key is the AES key, and should
     be 32 hex chars."""
-    
+
     cryptmail = _encrypt_string (email, base64.b16decode (private_key, casefold=True), '\0' * 16)
     base64crypt = base64.urlsafe_b64encode (cryptmail)
 
@@ -31,4 +31,3 @@ def _encrypt_string (str, aes_key, aes_iv):
     if len (aes_iv) != 16:
         raise Exception ("expecting iv of length 16")
     return AES.new (aes_key, AES.MODE_CBC, aes_iv).encrypt (_pad_string (str, 16))
-

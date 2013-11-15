@@ -60,6 +60,3 @@ def RetrievePendingRequest(p):
         return r
     else:
         return None
-
-
-    

@@ -451,7 +451,7 @@ indexes:
 	def DoUpload(self):
 		"""Uploads a new appversion with the given config and files to the server."""
 		files = ['bpkaspak/conversion.py',
-'bpkaspak/ellipticcurve.py', 'bpkaspak/mymath.py', 
+'bpkaspak/ellipticcurve.py', 'bpkaspak/mymath.py',
 'bpkaspak/publickey.py', 'bpkaspak/redp.py', 'bpkaspak/__init__.py',
 'agreestate.py', 'clean.py', 'clean_guesscnt.py', 'enc.py', 'key.py',
 'mailhide.py', 'nonce.py', 'pendingreq.py', 'portal.py', 'rekey.py',

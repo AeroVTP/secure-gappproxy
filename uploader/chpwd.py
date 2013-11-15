@@ -2,25 +2,25 @@
 # coding=utf-8
 #======================================================================
 # SecureGAppProxy is a security-strengthened version of GAppProxy.
-# http://secure-gappproxy.googlecode.com                               
-# This file is a part of SecureGAppProxy.                              
-# Copyright (C) 2011  nleven <www.nleven.com i@nleven.com>             
-#                                                                      
-# This program is free software: you can redistribute it and/or modify 
-# it under the terms of the GNU General Public License as published by 
-# the Free Software Foundation, either version 3 of the License, or    
-# (at your option) any later version.                                  
-#                                                                      
-# This program is distributed in the hope that it will be useful,      
-# but WITHOUT ANY WARRANTY; without even the implied warranty of       
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        
-# GNU General Public License for more details.                         
-#                                                                      
-# You should have received a copy of the GNU General Public License    
+# http://secure-gappproxy.googlecode.com
+# This file is a part of SecureGAppProxy.
+# Copyright (C) 2011  nleven <www.nleven.com i@nleven.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#                                                                      
-# ACKNOWLEDGEMENT                                                      
-# SecureGAppProxy is a based on the work of GAppProxy                  
+#
+# ACKNOWLEDGEMENT
+# SecureGAppProxy is a based on the work of GAppProxy
 # <http://gappproxy.googlecode.com> by Du XiaoGang <dugang@188.com>
 #======================================================================
 
@@ -132,7 +132,7 @@ def get_password_hash(server):
         if pwd != pwd_confirm:
             print "Two passwords aren't consistent, please try again."
             continue
-        
+
         if not dictionary:
             print "Loading dictionary..."
             dictionary = load_dictionary()
@@ -145,7 +145,7 @@ def get_password_hash(server):
             if raw_input("See the weak password?(y/n)").lower() =='y':
                 print closest
             continue
-            
+
         dist, closest = check_dictionary(dictionary, pwd.lower(), levenshtein_dist)
         if dist <= 3:
             print "Your password looks similar to a known weak password. Try another one."
@@ -157,7 +157,7 @@ def get_password_hash(server):
     print "Computing hash...\n"
     storage = pkcs5.PBKDF1(pwd, server.lower())
     #print "The password hash for %s: " % server
-        
+
     return base64.urlsafe_b64encode(storage)
 
 if __name__ == '__main__':

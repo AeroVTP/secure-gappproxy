@@ -72,7 +72,7 @@ class MyTipWindow(wx.Frame):
         self.size=size
         self.pos = self.target.GetScreenRect().GetBottomLeft().Get()
         self.SetPosition( self.pos )
-        
+
         self.SetTransparent( 200 )
 
         self.Bind(wx.EVT_MOTION, self.OnMouse)
@@ -84,13 +84,13 @@ class MyTipWindow(wx.Frame):
 
         self.thread_alive = False
         self.thread = threading.Thread(target=self.MonitorMouse)
-            
+
 
     def __del__(self):
         #Only support windows right now
         if wx.Platform != '__WXMSW__':
             return
-            
+
         if self.thread.is_alive():
             self.thread_alive = False
             self.thread.join()
@@ -100,17 +100,17 @@ class MyTipWindow(wx.Frame):
         if self.thread.is_alive():
             self.thread_alive = False
             #self.thread.join()
-        
+
         self.Hide()
         self.target.Bind(wx.EVT_SET_FOCUS, self.ShowTip)
-        
+
 
     def ShowTip(self, event):
         self.target.Unbind(wx.EVT_SET_FOCUS)
         self.pos = self.target.GetScreenRect().GetBottomLeft().Get()
         self.SetPosition(self.pos)
         self.Show()
-        
+
         self.target.SetFocus()
         self.target.Bind(wx.EVT_KILL_FOCUS, self.HideTip)
 
@@ -118,18 +118,18 @@ class MyTipWindow(wx.Frame):
             self.thread_alive = True
             self.thread = threading.Thread(target=self.MonitorMouse)
             self.thread.start()
-        
 
-    
+
+
     def SetRoundShape(self, event=None):
         w, h = self.GetSizeTuple()
         self.SetShape(GetRoundShape( w,h, 5 ) )
-        
-        
+
+
     def OnPaint(self, event):
         dc = wx.PaintDC(self)
         dc = wx.GCDC(dc)
-        
+
         textline = self.text.split('\n')
         textrect = map(dc.GetTextExtent, textline)
         w = max(map(lambda x:x[0], textrect)) + 10
@@ -142,7 +142,7 @@ class MyTipWindow(wx.Frame):
         self.size=(w,h)
         self.SetSize( (w,h) )
         self.SetRoundShape()
-            
+
         dc.SetBrush( wx.Brush("#000000"))
         dc.DrawRoundedRectangle( 0,0,w,h,r )
         dc.SetTextForeground(wx.WHITE)
@@ -150,7 +150,7 @@ class MyTipWindow(wx.Frame):
         for i, text in enumerate(textline):
             dc.DrawText( text, 5, h_array[i])
 
-            
+
     def MonitorMouse(self):
         while self.thread_alive:
             if False and not self.target.IsExposedPoint(wx.Point(2,2)):
@@ -174,7 +174,7 @@ class MyTipWindow(wx.Frame):
                 self.SetPosition(pos)
                 self.SetTransparent( 200 )
             time.sleep(0.04)
-        
+
     def OnMouse(self, event):
         self.pos = self.target.GetScreenRect().GetBottomLeft().Get()
         x, y = event.GetPosition() + self.GetPosition() - self.pos
@@ -188,7 +188,7 @@ class MyTipWindow(wx.Frame):
                 self.SetPosition(pos-wx.Point(0, h-y))
                 self.SetTransparent( max(0, 200 - ((h-y)/float(h))**0.5*300) )
 
-        
+
 
 
 
@@ -201,10 +201,10 @@ def CreateMenuItem(menu, label, func):
 class TaskBarIcon(wx.TaskBarIcon):
     def __init__(self):
         super(TaskBarIcon, self).__init__()
-        
+
         icon = wx.IconFromBitmap(wx.Bitmap(TRAY_ICON))
         self.SetIcon(icon, 'Secure GAppProxy %s' % common.VERSION)
-        
+
         self.Bind(wx.EVT_TASKBAR_LEFT_UP, self.OnShow)
 
     def CreatePopupMenu(self):
@@ -213,18 +213,18 @@ class TaskBarIcon(wx.TaskBarIcon):
         menu.AppendSeparator()
         CreateMenuItem(menu, 'Exit', self.OnExit)
         return menu
-    
-        
+
+
     def OnShow(self, event):
         global WINDOW_HANDLE
         WINDOW_HANDLE.Show()
-        
+
         wx.CallAfter(self.Destroy)
-        
+
     def OnExit(self, event):
         wx.CallAfter(self.Destroy)
         wx.CallAfter(WINDOW_HANDLE.Destroy)
-        
+
 
 class CloseConfirmDialog(wx.Dialog):
     def on_close_now(self, event):
@@ -232,10 +232,10 @@ class CloseConfirmDialog(wx.Dialog):
 
     def on_minimize(self, event):
         self.EndModal(2)
-        
+
     def on_cancel(self, event):
         self.EndModal(3)
-        
+
     def __init__(self, parent):
         wx.Dialog.__init__(self, parent, -1, title='Confirm')
         sizer_all = wx.BoxSizer(wx.VERTICAL)
@@ -256,11 +256,11 @@ class CloseConfirmDialog(wx.Dialog):
         sizer_all.Fit(self)
         self.CenterOnParent()
 
-        
+
 class AboutDialog(wx.Dialog):
     def on_ok(self, event):
         self.Close()
-        
+
     def __init__(self, parent):
         wx.Dialog.__init__(self, parent, -1, title='About')
         about_panel = self
@@ -278,23 +278,23 @@ class AboutDialog(wx.Dialog):
         ctrl.SetFont(font1)
         sizer_header_right.Add(ctrl)
         sizer_copyright = wx.BoxSizer()
-        
+
         sizer_copyright.Add(wx.StaticText(about_panel, label='Copyright (C) 2011 '))
         sizer_copyright.Add(wx.HyperlinkCtrl(about_panel, -1, label='nleven', url='http://www.nleven.com/'))
         sizer_header_right.Add(sizer_copyright, flag = wx.TOP, border = 10)
 
         description = """An anti-censorship software running on Google App Engine.
 It's a branch of GAppProxy focused on improving security by
-utilizing state-of-the-art cryptographic techniques. 
+utilizing state-of-the-art cryptographic techniques.
 """
         sizer_header_right.Add(wx.StaticText(about_panel, label=description), flag = wx.TOP, border = 10)
-        
+
         sizer_header_right.Add(wx.HyperlinkCtrl(about_panel, -1, label='Project Home on Google Code', url='https://code.google.com/p/secure-gappproxy/'))
 
         sizer_header.Add(sizer_header_right, flag=wx.LEFT, border=10)
 
         sizer_about.Add(sizer_header, flag=wx.ALL, border=10)
-        
+
 
 
         licence = """LICENCE
@@ -314,9 +314,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>."""
         acknowledgement = """ACKNOWLEDGEMENT
 SecureGAppProxy is based on GAppProxy and WallProxy.
 Some icons are from www.icons-land.com, Oliver Scholtz and Capital18."""
-        
+
         sizer_about.Add(wx.StaticText(about_panel, label=acknowledgement), flag = wx.ALL, border = 10)
-        
+
         self.okbtn = wx.Button(about_panel, label='Okay', size=(-1,35))
         self.okbtn.Bind(wx.EVT_BUTTON, self.on_ok)
         sizer_about.Add(self.okbtn, flag = wx.ALIGN_CENTER |  wx.ALL, border = 20)
@@ -332,22 +332,22 @@ class VerifyCodeDlg(wx.Dialog):
 
     def GetResult(self):
         return self.result
-    
+
     def OnClose(self, event):
         self.event.set()
         wx.CallAfter(self.Destroy)
-    
+
     def __init__(self, parent, msg, url, event):
         wx.Dialog.__init__(self, parent, -1, title='Verification code:')
         self.result=''
         self.event = event
-        
+
         self.Bind(wx.EVT_CLOSE, self.OnClose)
 
         sizer_bigbox = wx.BoxSizer(wx.VERTICAL)
-        
+
         sizer_smallbox = wx.BoxSizer(wx.VERTICAL)
-        
+
         sizer_smallbox.Add(wx.StaticText(self, label=msg),
                            flag=wx.BOTTOM, border=10)
         sizer_smallbox.Add(wx.HyperlinkCtrl(self, -1, label='Click Here!', url=url),
@@ -355,10 +355,10 @@ class VerifyCodeDlg(wx.Dialog):
 
         sizer_smallbox.Add(wx.StaticText(self, label='Verification Code:'),
                            flag=wx.BOTTOM, border=5)
-        
+
         self.code = wx.TextCtrl(self, size=(310,-1), style=wx.TE_PROCESS_ENTER)
         self.code.Bind(wx.EVT_TEXT_ENTER, self.OnOk)
-        
+
         sizer_smallbox.Add(self.code, flag=wx.BOTTOM, border=10)
 
         self.okbtn = wx.Button(self, size=(-1,35), label='Okay')
@@ -375,13 +375,13 @@ class VerifyCodeDlg(wx.Dialog):
 class MainFrame(wx.Frame):
 
     def OnToggleOptions(self, event):
-        self.Notify()   
+        self.Notify()
         s_w, s_h = wx.DisplaySize()
         if self.GetScreenRect().GetBottom() > s_h:
             w, h = self.GetSizeTuple()
             left, _ = self.GetPosition()
             self.SetPosition((left, (s_h - h)/2))
-        
+
     notimpexp = Exception("Not implemented!\nThis is not your fault. It's mine.\nFuture versions will implement this feature. Stay tuned.")
     def async_start(self):
         if self.core.Running():
@@ -389,14 +389,14 @@ class MainFrame(wx.Frame):
         else:
             self.core.Initialize()
             self.core.StartProxy(persistent=False)
-            
+
         if self.core.Running():
-            self.startbtn.SetBitmapLabel(wx.Bitmap(STOP_ICON))            
+            self.startbtn.SetBitmapLabel(wx.Bitmap(STOP_ICON))
         else:
             self.startbtn.SetBitmapLabel(wx.Bitmap(PLAY_ICON))
             self.PushStatusText('SecureGAppProxy is not running.', RED_ICON)
         self.startbtn.Enable()
-            
+
     def OnStart(self, event):
         if self.core.Running():
             self.PushStatusText("Stopping...", ORANGE_ICON)
@@ -407,9 +407,9 @@ class MainFrame(wx.Frame):
             if not self.pwdfake and self.pwdtext.GetValue() == '':
                 self.pwdtext.SetFocus()
                 return
-            
+
             self.SaveConfig(simple=True)
-                
+
         self.startbtn.Disable()
         self.start_thread = threading.Thread(target=self.async_start)
         self.start_thread.setDaemon(True)
@@ -426,10 +426,10 @@ class MainFrame(wx.Frame):
             self.start_thread = threading.Thread(target=self.__async_restart)
             self.start_thread.setDaemon(True)
             self.start_thread.start()
-        
+
     def on_clear_cert(self, event):
         raise MainFrame.notimpexp
-    
+
     def on_install_cert(self, event):
         raise MainFrame.notimpexp
 
@@ -440,7 +440,7 @@ class MainFrame(wx.Frame):
         else:
             self.SetMinSize(self.expand_size)
             self.SetClientSize(self.expand_size)
-            
+
         if self.proxycheck.IsChecked():
             self.proxytext.Enable()
             self.proxyporttext.Enable()
@@ -460,10 +460,10 @@ class MainFrame(wx.Frame):
             self.proxypwdtext.Disable()
             self.proxyusertext.SetValue('')
             self.proxypwdtext.SetValue('')
-            
+
     def on_check_proxy(self, event):
         self.Notify()
-            
+
 
     def on_about(self, event):
         aboutdlg = AboutDialog(self)
@@ -483,13 +483,13 @@ class MainFrame(wx.Frame):
             pass
         else:
             raise Exception('Unknown return code %s from CloseConfirmDialog' % str(ret))
-            
+
 
     def on_paint_status(self, event):
         obj = event.GetEventObject()
         dc = wx.PaintDC(obj)
         dc = wx.GCDC(dc)
-        
+
 
         if wx.Platform != '__WXMSW__':
             font1 = wx.Font(12, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL, False, u'')
@@ -510,13 +510,13 @@ class MainFrame(wx.Frame):
             if len(text) >= 5:
                 mid = len(text) / 2
                 text = text[:mid-1] + '...' + text[mid+2:]
-                
+
         d_w, d_h = t_w+32, h
         d_left, d_top = w - d_w, h-d_h
         b_left, b_top = d_left + 5, d_top + 5
         t_left, t_top = b_left + 22, d_top + max(0, (d_h-t_h)/2)
         r=12
-        
+
         dc.BeginDrawing()
         dc.SetBrush( wx.Brush("#999999"))
         dc.SetPen( wx.Pen("#999999", width = 2 ) )
@@ -546,7 +546,7 @@ class MainFrame(wx.Frame):
                 config.SetParam('fetch_protocol', 'https')
             else:
                 config.SetParam('fetch_protocol', 'http')
-            
+
             config.SetParam('auto_redirect', True)
 
             if self.proxycheck.GetValue():
@@ -565,7 +565,7 @@ class MainFrame(wx.Frame):
             else:
                 config.SetParam('local_proxy', '')
 
-            
+
             if wx.Platform == '__WXMSW__' and common.we_are_frozen():
                 if self.autostartchk.GetValue():
                     try:
@@ -585,11 +585,11 @@ class MainFrame(wx.Frame):
                         _winreg.CloseKey(hkey)
 
 
-        if persistent: 
+        if persistent:
             config.SaveConfig()
-        
-        
-        
+
+
+
     def LoadConfig(self):
         """Load configuration to UI controls."""
         self.servertext.SetValue( config.GetParam('fetch_server') )
@@ -634,7 +634,7 @@ class MainFrame(wx.Frame):
 
         #Notify the change of checkbox states
         self.Notify()
-        
+
     def OnPwdFocus(self, event):
         #If password is fake, we should not allow the user to edit it
         #Therefore, simply clear it.
@@ -644,28 +644,28 @@ class MainFrame(wx.Frame):
 
     def OnEnterSubmit(self, event):
         self.OnStart(None)
-        
+
     def OnCheckRememberPwd(self, event):
         self.SaveConfig(simple=True)
-        
+
     def PushStatusText(self, text, icon=BLUE_ICON):
         self.statustext = text
         self.statusicon = wx.Bitmap(icon)
         self.statusbar.Refresh()
-    
+
     def __init__(self, parent, id, title):
         wx.Frame.__init__(self, parent, id, title, style=wx.CAPTION | wx.CLOSE_BOX | wx.MINIMIZE_BOX | wx.SYSTEM_MENU | wx.FULL_REPAINT_ON_RESIZE)
         #Initialize proxy core
         self.core = proxycore.ProxyCore(Notifier(self))
 
-        
+
         self.start_thread = None
 
         self.SetIcon(wx.Icon(WND_ICON, wx.BITMAP_TYPE_ICO))
         self.Bind(wx.EVT_CLOSE, self.on_close)
 
         self.out_panel = wx.Panel(self)
-        
+
         simple_panel = wx.Panel(self.out_panel)
         self.simple_panel = simple_panel
         sizer_opts = wx.FlexGridSizer(rows=2,cols=2,vgap=10,hgap=5)
@@ -685,11 +685,11 @@ class MainFrame(wx.Frame):
         self.rememberchk.Bind(wx.EVT_CHECKBOX, self.OnCheckRememberPwd)
         sizer_pwd.Add(wx.StaticText(simple_panel, label="Do NOT check this if it's a public computer."), flag=wx.TOP, border=3)
         sizer_opts.Add(sizer_pwd, flag=wx.EXPAND)
-        
+
         self.optbtn = bt.GenBitmapTextToggleButton(simple_panel, -1, bitmap=wx.Bitmap(OPT_ICON), style=wx.NO_BORDER, label='Options')
         self.optbtn.Bind(wx.EVT_BUTTON, self.OnToggleOptions)
         sizer_opts.Add(self.optbtn)
-        
+
         sizer_start = wx.BoxSizer(wx.HORIZONTAL)
         sizer_start.Add(sizer_opts, flag=wx.EXPAND| wx.ALL, border=10)
         self.startbtn = bt.GenBitmapButton(simple_panel, -1, bitmap=wx.Bitmap(PLAY_ICON),size=(81,81), style=wx.NO_BORDER)
@@ -707,13 +707,13 @@ class MainFrame(wx.Frame):
 
 
         simple_panel.SetSizer(sizer_out)
-        
-        
+
+
 
         adv_panel = wx.Panel(self.out_panel)
         self.adv_panel = adv_panel
         sizer_adv = wx.FlexGridSizer(rows=5, cols=2, vgap=10, hgap=5)
-        
+
         sizer_adv.Add(wx.StaticText(adv_panel, label='Local Proxy:'), flag=wx.EXPAND | wx.TOP, border=3)
         sizer_proxy_out = wx.BoxSizer(wx.VERTICAL)
         self.proxycheck = wx.CheckBox(adv_panel, label='Check this if you are behind a proxy.')
@@ -728,7 +728,7 @@ class MainFrame(wx.Frame):
         self.proxyporttext = nc.NumCtrl( adv_panel, id = -1, value = None, integerWidth=5, allowNone=True, limited=True, limitOnFieldChange=True,selectOnEntry = True, groupDigits = False, min = 1, max = 65535 )
         MyTipWindow(self, self.proxyporttext, text='The port of the proxy. e.g. 8080')
         sizer_proxy.Add(self.proxyporttext, flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=5)
-        
+
         sizer_proxy_out.Add(sizer_proxy, flag=wx.TOP, border=5)
 
         self.proxyauthcheck = wx.CheckBox(adv_panel, label='Check this if proxy requires authentication.')
@@ -738,21 +738,21 @@ class MainFrame(wx.Frame):
         sizer_auth.Add(wx.StaticText(adv_panel, label='Username:'), flag=wx.EXPAND | wx.TOP, border=3)
         self.proxyusertext = wx.TextCtrl(adv_panel, value='', size=(90,-1))
         sizer_auth.Add(self.proxyusertext, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=5)
-        sizer_auth.Add(wx.StaticText(adv_panel, label='Password:'), flag=wx.EXPAND|wx.TOP, border=3)        
+        sizer_auth.Add(wx.StaticText(adv_panel, label='Password:'), flag=wx.EXPAND|wx.TOP, border=3)
         self.proxypwdtext = wx.TextCtrl(adv_panel, value='', size=(90,-1), style=wx.TE_PASSWORD)
         sizer_auth.Add(self.proxypwdtext, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=5)
         sizer_proxy_out.Add(sizer_auth, flag=wx.EXPAND|wx.TOP, border=5)
-        
-        
+
+
         sizer_adv.Add(sizer_proxy_out)
 
-        
+
 
         sizer_adv.Add(wx.StaticText(adv_panel, label='Listen port:'), flag=wx.EXPAND | wx.TOP, border=3)
         self.porttext = nc.NumCtrl( adv_panel, id = -1, value = 8000, limited=True, limitOnFieldChange=True,selectOnEntry = True, groupDigits = False, min = 1, max = 65535 )
         MyTipWindow(self, self.porttext, text='The local port Secure GAppProxy listens on. There\'re very few reasons to change this.\nPort number should be from 1 to 65535.')
         sizer_adv.Add(self.porttext)
-        
+
         sizer_adv.Add(wx.StaticText(adv_panel, label='Options:'), flag=wx.EXPAND | wx.TOP, border=3)
         sizer_advopts = wx.BoxSizer(wx.VERTICAL)
         self.httpschk = wx.CheckBox(adv_panel, label='Connect fetch server with HTTPS.')
@@ -763,7 +763,7 @@ class MainFrame(wx.Frame):
             self.autostartchk = wx.CheckBox(adv_panel, label='Start proxy with Windows.')
             sizer_advopts.Add(self.autostartchk)
         sizer_adv.Add(sizer_advopts)
-        
+
         ##sizer_adv.Add(wx.StaticText(adv_panel, label='Certificate:'), flag=wx.EXPAND | wx.TOP, border=3)
         ##sizer_certopts = wx.BoxSizer(wx.VERTICAL)
         ##self.clearcachebtn = wx.Button(adv_panel, label='Clear Certificate Cache')
@@ -776,13 +776,13 @@ class MainFrame(wx.Frame):
 
         sizer_adv_box = wx.BoxSizer(wx.VERTICAL)
         sizer_adv_box.Add(sizer_adv, flag=wx.EXPAND | wx.ALL, border=20)
-        
+
 
         self.savebtn = wx.Button(adv_panel, size=(-1,35), label='Save and Apply')
         self.savebtn.Bind(wx.EVT_BUTTON, self.OnSaveApply)
         sizer_adv_box.Add((-1, 30))
         sizer_adv_box.Add(self.savebtn, flag=wx.ALIGN_RIGHT | wx.BOTTOM | wx.RIGHT, border=20)
-        
+
         adv_panel.SetSizer(sizer_adv_box)
 
         sizer_final = wx.BoxSizer(wx.VERTICAL)
@@ -790,7 +790,7 @@ class MainFrame(wx.Frame):
         sizer_final.Add(adv_panel, flag=wx.EXPAND)
 
         self.out_panel.SetSizer(sizer_final)
-        
+
         MyTipWindow(self, self.servertext, text='Fetch server running on GAE. e.g. your-appspot-id.appspot.com')
 
         self.min_size = sizer_out.GetMinSize().Get()
@@ -812,7 +812,7 @@ class MainFrame(wx.Frame):
         self.statusbar.Refresh()
 
         self.about_btn = bt.GenBitmapTextButton(adv_panel, -1, bitmap=wx.Bitmap(ABOUTBTN_ICON), style=wx.NO_BORDER, label='About')
-        
+
         self.about_btn.Bind(wx.EVT_BUTTON, self.on_about)
         if wx.Platform != '__WXMSW__':
             self.about_btn.SetBackgroundColour(COLOUR_NORMAL)
@@ -828,22 +828,22 @@ class MainFrame(wx.Frame):
             simple_panel.SetBackgroundColour(COLOUR_NORMAL)
             adv_panel.SetBackgroundColour(COLOUR_NORMAL)
             self.statusbar.SetBackgroundColour(COLOUR_NORMAL)
-        
+
 
         self.LoadConfig()
 
         #If we have the parameters needed, automatically connect
         if config.GetParam('password') != None and config.GetParam('fetch_server') != '':
             self.OnStart(None)
-            
 
-        
 
-        
+
+
+
 class Notifier:
     def __init__(self, mainframe):
         self.frame = mainframe
-        
+
     def PushStatus(self, text):
         self.frame.PushStatusText(text)
 
@@ -858,7 +858,7 @@ class Notifier:
         if dlg_holder:
             dlg_holder[0] = dlg
         dlg.ShowModal()
-        
+
     def RequestCaptcha(self, msg, url):
         event = threading.Event()
         dlg_holder = [None]
@@ -866,7 +866,7 @@ class Notifier:
                                               dlg_holder))
         event.wait()
         return dlg_holder[0].GetResult()
-        
+
 
     def RequestPassword(self):
         assert not self.frame.pwdfake

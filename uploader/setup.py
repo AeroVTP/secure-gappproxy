@@ -47,9 +47,9 @@ data_files = [
     ('', ['pwddict']),
 ]
 add_folder(data_files, '../fetchserver/')
-    
+
 setup(
-    options = {"py2exe": 
+    options = {"py2exe":
         { "optimize": 2,
           "compressed": 1,
           "bundle_files": 1,

@@ -369,7 +369,7 @@ class HttpRpcServer(AbstractRpcServer):
 
   DEFAULT_COOKIE_FILE_PATH = "~/.appcfg_cookies"
 
-  
+
   def __init__(self, *args, **kwargs):
     self.certpath = os.path.normpath(os.path.join(
         module_path(), 'cacerts',
