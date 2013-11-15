@@ -1,0 +1,22 @@
+application: appspotid
+version: 1
+runtime: python
+api_version: 1
+
+handlers:
+
+- url: /portal
+  script: portal.py
+  secure: optional
+
+- url: /clean
+  script: clean.py
+  login: admin
+
+- url: /clean_guesscnt
+  script: clean_guesscnt.py
+  login: admin
+
+- url: /rekey
+  script: rekey.py
+  secure: optional

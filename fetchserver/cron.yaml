@@ -1,0 +1,8 @@
+cron:
+- description: clean expired states and nonces
+  url: /clean
+  schedule: every 15 minutes
+
+- description: reset password guess counter
+  url: /clean_guesscnt
+  schedule: every 24 hours
