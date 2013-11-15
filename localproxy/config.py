@@ -1,12 +1,16 @@
-import keyring
 import os
 import common
 import copy
 import re
 
+try:
+    import keyring
+except ImportError:
+    keyring=None
+
 __conf_dict = None
 
-if os.name == 'nt':
+if os.name == 'nt' and keyring:
     keyring.set_keyring(keyring.backend.Win32CryptoKeyring())
 
 def __parse_conf(confFile=common.DEF_CONF_FILE):
@@ -41,7 +45,7 @@ def __parse_conf(confFile=common.DEF_CONF_FILE):
 
     #Get the password in the keyring.
     #Avoid doing so if fetch_server isn't set.
-    if 'fetch_server' in __conf_dict:
+    if 'fetch_server' in __conf_dict and keyring:
         pwd = keyring.get_password('secure-gappproxy', 'password')
         if pwd and pwd!='':
             __conf_dict['password'] = pwd
@@ -49,11 +53,12 @@ def __parse_conf(confFile=common.DEF_CONF_FILE):
 def SaveConfig(conf_file=common.DEF_CONF_FILE):
     global __conf_dict
     conf_copy = copy.deepcopy(__conf_dict)
-    if 'password' in conf_copy:
-        keyring.set_password('secure-gappproxy', 'password', conf_copy['password'])
-        del conf_copy['password']
-    else:
-        keyring.set_password('secure-gappproxy', 'password', '')
+    if keyring:
+        if 'password' in conf_copy:
+            keyring.set_password('secure-gappproxy', 'password', conf_copy['password'])
+            del conf_copy['password']
+        else:
+            keyring.set_password('secure-gappproxy', 'password', '')
 
     try:
         fp = open(conf_file, 'w+')
