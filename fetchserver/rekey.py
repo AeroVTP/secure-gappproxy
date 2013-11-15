@@ -24,8 +24,7 @@
 # <http://gappproxy.googlecode.com> by Du XiaoGang <dugang@188.com>
 #======================================================================
 
-import wsgiref.handlers, logging
-from google.appengine.ext import webapp
+import logging,webapp2
 from google.appengine.ext import db
 
 import key
@@ -37,7 +36,7 @@ import os
 import pendingreq
 import mailhide
 
-class MainHandler(webapp.RequestHandler):
+class MainHandler(webapp2.RequestHandler):
     def get(self):
         self.error(404)
         return
@@ -98,10 +97,4 @@ class MainHandler(webapp.RequestHandler):
         
 
 
-def main():
-    application = webapp.WSGIApplication([("/rekey", MainHandler)])
-    wsgiref.handlers.CGIHandler().run(application)
-    
-
-if __name__ == "__main__":
-    main()
+app = webapp2.WSGIApplication([("/rekey", MainHandler)],debug=True)

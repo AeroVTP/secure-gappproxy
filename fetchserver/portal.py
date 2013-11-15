@@ -24,16 +24,14 @@
 # <http://gappproxy.googlecode.com> by Du XiaoGang <dugang@188.com>
 #======================================================================
 
-import wsgiref.handlers, urlparse, StringIO, logging, base64, zlib, re
-from google.appengine.ext import webapp
-from google.appengine.api import urlfetch
-from google.appengine.api import urlfetch_errors
+import urlparse, StringIO, logging, base64, zlib, re, webapp2
+from google.appengine.api import urlfetch, urlfetch_errors
 
 import Cookie
 import enc
 from cgi import parse_qs
 
-class MainHandler(webapp.RequestHandler):
+class MainHandler(webapp2.RequestHandler):
     Software = "GAppProxy/2.0.0"
     # hop to hop header should not be forwarded
     H2H_Headers = ["connection", "keep-alive", "proxy-authenticate", "proxy-authorization", "te", "trailers", "transfer-encoding", "upgrade"]
@@ -210,9 +208,4 @@ class MainHandler(webapp.RequestHandler):
     def get(self):
         self.error(404)
 
-def main():
-    application = webapp.WSGIApplication([("/portal", MainHandler)])
-    wsgiref.handlers.CGIHandler().run(application)
-
-if __name__ == "__main__":
-    main()
+app = webapp2.WSGIApplication([("/portal", MainHandler)],debug=True)

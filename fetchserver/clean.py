@@ -24,8 +24,7 @@
 # <http://gappproxy.googlecode.com> by Du XiaoGang <dugang@188.com>
 #======================================================================
 
-import wsgiref.handlers, logging
-from google.appengine.ext import webapp
+import logging, webapp2
 
 import time
 from google.appengine.ext import db
@@ -42,16 +41,11 @@ def Clean(kind, expire):
             break
 
         
-class MainHandler(webapp.RequestHandler):
+class MainHandler(webapp2.RequestHandler):
     def get(self):
         self.response.headers["Content-Type"] = "text/html; charset=utf-8"
         Clean('Nonce', 900)
         Clean('AgreeState', 60)
         Clean('PendingRequest', 900)
 
-def main():
-    application = webapp.WSGIApplication([("/clean", MainHandler)])
-    wsgiref.handlers.CGIHandler().run(application)
-
-if __name__ == "__main__":
-    main()
+app = webapp2.WSGIApplication([("/clean", MainHandler)],debug=True)

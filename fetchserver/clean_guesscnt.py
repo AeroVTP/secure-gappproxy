@@ -24,22 +24,16 @@
 # <http://gappproxy.googlecode.com> by Du XiaoGang <dugang@188.com>
 #======================================================================
 
-import wsgiref.handlers, logging
-from google.appengine.ext import webapp
+import logging, webapp2
 
 import time
 from google.appengine.ext import db
 import pendingreq
 
         
-class MainHandler(webapp.RequestHandler):
+class MainHandler(webapp2.RequestHandler):
     def get(self):
         self.response.headers["Content-Type"] = "text/html; charset=utf-8"
         pendingreq.ClearPwdGuessCnt()
 
-def main():
-    application = webapp.WSGIApplication([("/clean_guesscnt", MainHandler)])
-    wsgiref.handlers.CGIHandler().run(application)
-
-if __name__ == "__main__":
-    main()
+app = webapp.WSGIApplication([("/clean_guesscnt", MainHandler)],debug=True)
