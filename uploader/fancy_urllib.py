@@ -1,5 +1,3 @@
-#!/usr/bin/python2.4
-#
 # Copyright (c) 2001, 2002, 2003, 2004, 2005, 2006, 2007 Python Software
 # Foundation; All Rights Reserved
 
@@ -14,13 +12,12 @@ __author__ = "{frew,nick.johnson}@google.com (Fred Wulff and Nick Johnson)"
 import base64
 import httplib
 import logging
-import re
 import socket
-import urllib2
-
+from urllib import splitpasswd
 from urllib import splittype
 from urllib import splituser
-from urllib import splitpasswd
+import urllib2
+
 
 class InvalidCertificateException(httplib.HTTPException):
   """Raised when a certificate is provided with an invalid hostname."""
@@ -31,6 +28,7 @@ class InvalidCertificateException(httplib.HTTPException):
     Args:
       host: The hostname the connection was made to.
       cert: The SSL certificate (as a dictionary) the host returned.
+      reason: user readable error reason.
     """
     httplib.HTTPException.__init__(self)
     self.host = host
@@ -38,21 +36,35 @@ class InvalidCertificateException(httplib.HTTPException):
     self.reason = reason
 
   def __str__(self):
-    return ('Host %s returned an invalid certificate (%s): %s\n'
-            'To learn more, see '
-            'http://code.google.com/appengine/kb/general.html#rpcssl' %
+    return ("Host %s returned an invalid certificate (%s): %s\n"
+            "To learn more, see "
+            "http://code.google.com/appengine/kb/general.html#rpcssl" %
             (self.host, self.reason, self.cert))
+
+
+try:
+  import ssl
+  _CAN_VALIDATE_CERTS = True
+except ImportError:
+  _CAN_VALIDATE_CERTS = False
+
 
 def can_validate_certs():
   """Return True if we have the SSL package and can validate certificates."""
-  try:
-    import ssl
-    return True
-  except ImportError:
-    return False
+  return _CAN_VALIDATE_CERTS
 
-def _create_fancy_connection(tunnel_host=None, key_file=None,
-                             cert_file=None, ca_certs=None):
+
+# Reexport SSLError so clients don't have to to do their own checking for ssl's
+# existence.
+if can_validate_certs():
+  SSLError = ssl.SSLError
+else:
+  SSLError = None
+
+
+def create_fancy_connection(tunnel_host=None, key_file=None,
+                            cert_file=None, ca_certs=None,
+                            proxy_authorization=None):
   # This abomination brought to you by the fact that
   # the HTTPHandler creates the connection instance in the middle
   # of do_open so we need to add the tunnel host to the class.
@@ -70,28 +82,34 @@ def _create_fancy_connection(tunnel_host=None, key_file=None,
       self.key_file = key_file
       self.cert_file = cert_file
       self.ca_certs = ca_certs
-      try:
-        import ssl
+      if can_validate_certs():
         if self.ca_certs:
           self.cert_reqs = ssl.CERT_REQUIRED
         else:
           self.cert_reqs = ssl.CERT_NONE
-      except ImportError:
-        pass
 
     def _tunnel(self):
       self._set_hostport(self._tunnel_host, None)
       logging.info("Connecting through tunnel to: %s:%d",
                    self.host, self.port)
-      self.send("CONNECT %s:%d HTTP/1.0\r\n\r\n" % (self.host, self.port))
+
+      self.send("CONNECT %s:%d HTTP/1.0\r\n" % (self.host, self.port))
+
+      if proxy_authorization:
+        self.send("Proxy-Authorization: %s\r\n" % proxy_authorization)
+
+      # blank line
+      self.send("\r\n")
+
       response = self.response_class(self.sock, strict=self.strict,
                                      method=self._method)
+      # pylint: disable=protected-access
       (_, code, message) = response._read_status()
 
       if code != 200:
         self.close()
-        raise socket.error, "Tunnel connection failed: %d %s" % (
-            code, message.strip())
+        raise socket.error("Tunnel connection failed: %d %s" %
+                           (code, message.strip()))
 
       while True:
         line = response.fp.readline()
@@ -106,15 +124,15 @@ def _create_fancy_connection(tunnel_host=None, key_file=None,
       Returns:
         list: A list of valid host globs.
       """
-      if 'subjectAltName' in cert:
-        return [x[1] for x in cert['subjectAltName'] if x[0].lower() == 'dns']
+      if "subjectAltName" in cert:
+        return [x[1] for x in cert["subjectAltName"] if x[0].lower() == "dns"]
       else:
         # Return a list of commonName fields
-        return [x[0][1] for x in cert['subject']
-                if x[0][0].lower() == 'commonname']
+        return [x[0][1] for x in cert["subject"]
+                if x[0][0].lower() == "commonname"]
 
     def _validate_certificate_hostname(self, cert, hostname):
-      """Validates that a given hostname is valid for an SSL certificate.
+      """Perform RFC2818/6125 validation against a cert and hostname.
 
       Args:
         cert: A dictionary representing an SSL certificate.
@@ -124,13 +142,18 @@ def _create_fancy_connection(tunnel_host=None, key_file=None,
       """
       hosts = self._get_valid_hosts_for_cert(cert)
       for host in hosts:
-        # Convert the glob-style hostname expression (eg, '*.google.com') into a
-        # valid regular expression.
-        host_re = host.replace('.', '\.').replace('*', '[^.]*')
-        if re.search('^%s$' % (host_re,), hostname, re.I):
+        # Wildcards are only valid when the * exists at the end of the last
+        # (left-most) label, and there are at least 3 labels in the expression.
+        if ("*." in host and host.count("*") == 1 and
+            host.count(".") > 1 and "." in hostname):
+          left_expected, right_expected = host.split("*.")
+          left_hostname, right_hostname = hostname.split(".", 1)
+          if (left_hostname.startswith(left_expected) and
+              right_expected == right_hostname):
+            return True
+        elif host == hostname:
           return True
       return False
-
 
     def connect(self):
       # TODO(frew): When we drop support for <2.6 (in the far distant future),
@@ -141,9 +164,11 @@ def _create_fancy_connection(tunnel_host=None, key_file=None,
         self._tunnel()
 
       # ssl and FakeSocket got deprecated. Try for the new hotness of wrap_ssl,
-      # with fallback.
-      try:
-        import ssl
+      # with fallback. Note: Since can_validate_certs() just checks for the
+      # ssl module, it's equivalent to attempting to import ssl from
+      # the function, but doesn't require a dynamic import, which doesn't
+      # play nicely with dev_appserver.
+      if can_validate_certs():
         self.sock = ssl.wrap_socket(self.sock,
                                     keyfile=self.key_file,
                                     certfile=self.cert_file,
@@ -152,15 +177,15 @@ def _create_fancy_connection(tunnel_host=None, key_file=None,
 
         if self.cert_reqs & ssl.CERT_REQUIRED:
           cert = self.sock.getpeercert()
-          hostname = self.host.split(':', 0)[0]
+          hostname = self.host.split(":", 0)[0]
           if not self._validate_certificate_hostname(cert, hostname):
             raise InvalidCertificateException(hostname, cert,
-                                              'hostname mismatch')
-      except ImportError:
-        ssl = socket.ssl(self.sock,
-                         keyfile=self.key_file,
-                         certfile=self.cert_file)
-        self.sock = httplib.FakeSocket(self.sock, ssl)
+                                              "hostname mismatch")
+      else:
+        ssl_socket = socket.ssl(self.sock,
+                                keyfile=self.key_file,
+                                certfile=self.cert_file)
+        self.sock = httplib.FakeSocket(self.sock, ssl_socket)
 
   return PresetProxyHTTPSConnection
 
@@ -211,6 +236,7 @@ class FancyRequest(urllib2.Request):
 
   def set_proxy(self, host, type):
     saved_type = None
+
     if self.get_type() == "https" and not self._tunnel_host:
       self._tunnel_host = self.get_host()
       saved_type = self.get_type()
@@ -329,15 +355,22 @@ class FancyHTTPSHandler(urllib2.HTTPSHandler):
   """An HTTPSHandler that works with CONNECT-enabled proxies."""
 
   def do_open(self, http_class, req):
+    proxy_authorization = None
+    for header in req.headers:
+      if header.lower() == "proxy-authorization":
+        proxy_authorization = req.headers[header]
+        break
+
     # Intentionally very specific so as to opt for false negatives
     # rather than false positives.
     try:
       return urllib2.HTTPSHandler.do_open(
           self,
-          _create_fancy_connection(req._tunnel_host,
-                                   req._key_file,
-                                   req._cert_file,
-                                   req._ca_certs),
+          create_fancy_connection(req._tunnel_host,
+                                  req._key_file,
+                                  req._cert_file,
+                                  req._ca_certs,
+                                  proxy_authorization),
           req)
     except urllib2.URLError, url_error:
       try:
@@ -346,7 +379,7 @@ class FancyHTTPSHandler(urllib2.HTTPSHandler):
             url_error.reason.args[0] == 1):
           # Display the reason to the user. Need to use args for python2.5
           # compat.
-          raise InvalidCertificateException(req.host, '',
+          raise InvalidCertificateException(req.host, "",
                                             url_error.reason.args[1])
       except ImportError:
         pass
@@ -365,13 +398,33 @@ class FancyRedirectHandler(urllib2.HTTPRedirectHandler):
     # Same thing as in our set_proxy implementation, but in this case
     # we"ve only got a Request to work with, so it was this or copy
     # everything over piecemeal.
+    #
+    # Note that we do not persist tunneling behavior from an http request
+    # to an https request, because an http request does not set _tunnel_host.
+    #
+    # Also note that in Python < 2.6, you will get an error in
+    # FancyHTTPSHandler.do_open() on an https urllib2.Request that uses an http
+    # proxy, since the proxy type will be set to http instead of https.
+    # (FancyRequest, and urllib2.Request in Python >= 2.6 set the proxy type to
+    # https.)  Such an urllib2.Request could result from this redirect
+    # if you are redirecting from an http request (since an an http request
+    # does not have _tunnel_host set, and thus you will not set the proxy
+    # in the code below), and if you have defined a proxy for https in, say,
+    # FancyProxyHandler, and that proxy has type http.
     if hasattr(req, "_tunnel_host") and isinstance(new_req, urllib2.Request):
       if new_req.get_type() == "https":
-        new_req._tunnel_host = new_req.get_host()
-        new_req.set_proxy(req.host, "https")
+        if req._tunnel_host:
+          # req is proxied, so copy the proxy info.
+          new_req._tunnel_host = new_req.get_host()
+          new_req.set_proxy(req.host, "https")
+        else:
+          # req is not proxied, so just make sure _tunnel_host is defined.
+          new_req._tunnel_host = None
         new_req.type = "https"
-        new_req._key_file = req._key_file
-        new_req._cert_file = req._cert_file
-        new_req._ca_certs = req._ca_certs
+    if hasattr(req, "_key_file") and isinstance(new_req, urllib2.Request):
+      # Copy the auxiliary data in case this or any further redirect is https
+      new_req._key_file = req._key_file
+      new_req._cert_file = req._cert_file
+      new_req._ca_certs = req._ca_certs
 
     return new_req
