@@ -29,7 +29,6 @@ from google.appengine.api import urlfetch, urlfetch_errors
 
 import Cookie
 import enc
-from cgi import parse_qs
 
 class MainHandler(webapp2.RequestHandler):
     Software = "GAppProxy/2.0.0"
@@ -60,7 +59,7 @@ class MainHandler(webapp2.RequestHandler):
 
             dec_request = enc.DecodeAES(t)
 
-            parse_request = parse_qs(dec_request, keep_blank_values=True)
+            parse_request = urlparse.parse_qs(dec_request, keep_blank_values=True)
             # get post data
             orig_method = parse_request["method"][0]#self.request.get("method").encode("utf-8")
             orig_path = parse_request["path"][0]#base64.b64decode(self.request.get("encoded_path").encode("utf-8"))
