@@ -35,7 +35,7 @@ verbosity = 1
 
 def GetUserCredentials():
     """Prompts the user for a username and password."""
-        email = raw_input('Google Account Email: ')
+    email = raw_input('Google Account Email: ')
     password_prompt = 'Password for %s: ' % email
     password = getpass.getpass(password_prompt)
     return (email, password)
